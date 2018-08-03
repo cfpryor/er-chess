@@ -1,1 +1,1 @@
-# er-chess
+Entity resolution on chess data.
