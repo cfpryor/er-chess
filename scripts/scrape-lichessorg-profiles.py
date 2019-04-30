@@ -2,6 +2,7 @@ import json
 import os
 import sys
 import time
+import shutil
 import urllib.request
 
 from urllib.request import Request, urlopen
