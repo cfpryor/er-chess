@@ -42,7 +42,7 @@ def fetch_profile(username):
             response = urlopen(req)
         except:
             print("User Error: %s" % (username))
-            shutil.rmtree(PLAYER_DIR + username)
+            shutil.rmtree(PLAYER_DIR + '/' + username)
             return
 
         data = response.read().decode('utf-8')
