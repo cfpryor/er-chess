@@ -4,70 +4,75 @@ import re
 import sys
 import time
 
-#Desired Note Section (Chess.com)
-FIDE = "ctrl.stats.officialRating.rating"
-NOTES_START = "<div class=\"section-wrapper\">"
-NOTES_END = "</div>"
-LINK_START = "href=\""
+# Desired Profile Section (Chess.com)
+PROFILE_START = "<div class=\"section-wrapper\">"
+PROFILE_END = "</div>"
 
-#Cache Variables
-CACHE_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "chess_com")
-PLAYER_DIR = os.path.join(CACHE_DIR, "https", "api.chess.com", "pub", "player")
+# Profile Name
 PROFILE = 'profile.txt'
 
-def print_truth(truth_dict):
-	for user in truth_dict:
-		print("\n\n---------------------------\n%s\n---------------------------"%(user))
-		for (raw, processed) in truth_dict[user]:
-			print("===============\n%s\n---------------\n%s\n===============\n"%(raw.strip(), processed))
+# Logging Constants
+LOGGING_NUMBER = 5000
 
-def fetch_truth_fide(username, path, notes_start, notes_end, truth_dict):
-	start_scanning = False
+def write_profile_info(profile_dict, path):
+    with open(path, 'w') as file:
+       json.dump(profile_dict, file, indent = 4)
 
-	with open(path, 'r') as file:
-		for line in file:
-			if FIDE in line:
-				if username not in truth_dict:
-					truth_dict[username] = []
-				truth_dict[username].append(line)
-	return truth_dict
+def fetch_profile_info(username, path, profile_start = PROFILE_START, profile_end = PROFILE_END):
+    profile_info = ""
+    start_scanning = False
 
-def fetch_truth_media(username, path, notes_start, notes_end, truth_dict):
-	start_scanning = False
+    with open(path, 'r') as file:
+        for line in file:
+            if profile_start in line:
+                start_scanning = True
+                continue
+            elif profile_end in line and start_scanning:
+                return profile_info
 
-	with open(path, 'r') as file:
-		for line in file:
-			if notes_start in line:
-				start_scanning = True
-			elif notes_end in line and start_scanning:
-				start_scanning = False
-			elif start_scanning:
-				if username not in truth_dict:
-					truth_dict[username] = []
+            if start_scanning:
+                profile_info += line
 
-				if LINK_START in line:
-					#Look for specific link
-					link = re.search('href=\"([A-Za-z0-9#,;&?=%@\-:\._/]+)\"', line)
-					if link == None:
-						continue
-					truth_dict[username].append([line, link.group(1)])
-				else:
-					truth_dict[username].append([line, None])
+    return profile_info
 
-	return truth_dict
+def _load_args(args):
+    executable = args.pop(0)
+    if (len(args) != 2 or ({'h', 'help'} & {arg.lower().strip().replace('-', '') for arg in args})):
+        print("USAGE: python3 %s <data path> <output path>" % (executable), file = sys.stderr)
+        sys.exit(1)
+
+    data_path = args.pop(0)
+    output_path = args.pop(0)
+
+    return data_path, output_path
 
 def main():
-	unexplored_users = set(os.listdir(PLAYER_DIR))
-	truth_dict = {}
+    data_path, output_path = _load_args(sys.argv)
+    profile_dict = {}
 
-	for username in unexplored_users:
-		#Skip username if profile does not exist
-		path = os.path.join(PLAYER_DIR, username, PROFILE)
-		if os.path.isfile(path):
-			truth_dict = fetch_truth_media(username, path, NOTES_START, NOTES_END, truth_dict)
+    starting_time = time.time()
+    print("Starting at time: %d" % (starting_time))
+    print("Number of profiles: %d" % (len(os.listdir(data_path))))
 
-	print_truth(truth_dict)
-	print(len(truth_dict))
+    counter = 0
+    previous_time = starting_time
+
+    for username in os.listdir(data_path):
+        # Grab profile information and continue if there is none
+        profile_info = fetch_profile_info(username, os.path.join(data_path, username, PROFILE))
+        if len(profile_info) > 0:
+            profile_dict[username] = profile_info
+
+        # Logging info
+        counter += 1
+        if counter % LOGGING_NUMBER == 0:
+            current_time = time.time()
+            print("Profiles Searched: %d Time: %d Time from Start: %d Delta Time: %d" % (counter, time.time(), current_time - starting_time, current_time - previous_time))
+            sys.stdout.flush()
+            previous_time = current_time
+
+    if len(profile_dict) > 0:
+        write_profile_info(profile_dict, output_path)
 
 if (__name__ == '__main__'):
-	main()
+    main()
