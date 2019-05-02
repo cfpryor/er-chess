@@ -30,22 +30,6 @@ def write_truth(truth_data, path):
     with open(path, 'w') as file:
         json.dump(truth_data, file, indent = 4)
 
-def match_ground_truth(truth_data_dict):
-    mapping_dict = {}
-
-    for user_key in truth_data_dict:
-        for handle_key in truth_data_dict[user_key]:
-            if handle_key == None:
-                continue
-
-            if handle_key not in mapping_dict:
-                mapping_dict[handle_key] = []
-            mapping_dict[handle_key].append(user_key)
-
-    for key in mapping_dict:
-        if (len(mapping_dict[key]) > 1):
-            print(key, mapping_dict[key], len(mapping_dict[key]))
-
 def extract_truth_data(data_dict, truth_regex = TRUTH_REGEX, truth_name = TRUTH_NAME):
     truth_data_dict = {}
 
@@ -79,7 +63,6 @@ def main():
 
     data_dict = load_data(data_path)
     truth_data = extract_truth_data(data_dict)
-    match_ground_truth(truth_data)
     write_truth(truth_data, 'ground_truth.json')
 
 if (__name__ == '__main__'):
