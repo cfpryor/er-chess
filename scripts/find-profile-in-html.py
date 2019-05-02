@@ -5,8 +5,10 @@ import sys
 import time
 
 # Desired Profile Section (Chess.com)
-PROFILE_START = "<div class=\"section-wrapper\">"
-PROFILE_END = "</div>"
+
+DESIRED_SECTIONS = {"<div class=\"section-wrapper\">": ["</div>", False],
+                    "<p class=\"bio\">": ["</p>", False],
+                    "<div class=\"social_links col2\">": ["</div>", False]}
 
 # Profile Name
 PROFILE = 'profile.txt'
@@ -18,20 +20,20 @@ def write_profile_info(profile_dict, path):
     with open(path, 'w') as file:
        json.dump(profile_dict, file, indent = 4)
 
-def fetch_profile_info(username, path, profile_start = PROFILE_START, profile_end = PROFILE_END):
+def fetch_profile_info(username, path, desired_sections = DESIRED_SECTIONS):
     profile_info = ""
-    start_scanning = False
 
     with open(path, 'r') as file:
         for line in file:
-            if profile_start in line:
-                start_scanning = True
-                continue
-            elif profile_end in line and start_scanning:
-                return profile_info
+            for section_start in desired_sections:
+                if section_start in line:
+                    desired_sections[section_start][1] = True
+                    continue
+                elif desired_sections[section_start][0] in line and desired_sections[section_start][1]: 
+                    desired_sections[section_start][1] = False
 
-            if start_scanning:
-                profile_info += line
+                if desired_sections[section_start][1] == True and line != "":
+                    profile_info += line
 
     return profile_info
 
