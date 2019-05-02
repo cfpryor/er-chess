@@ -26,6 +26,10 @@ TRUTH_REGEX = [ '[\w\.-]+@[\w\.-]+',
 
 # '[0-9]{3}-[0-9]{3}-[0-9]{4}|([0-9]{3})[0-9]{3}-[0-9]{4}|[0-9]{3}-[0-9]{4}|1[0-9]{3}-[0-9]{3}-[0-9]{4}'
 
+def write_truth(truth_data, path):
+    with open(path, 'w') as file:
+        json.dump(truth_data, file, indent = 4)
+
 def match_ground_truth(truth_data_dict):
     mapping_dict = {}
 
@@ -76,7 +80,7 @@ def main():
     data_dict = load_data(data_path)
     truth_data = extract_truth_data(data_dict)
     match_ground_truth(truth_data)
-    # write_truth(truth_data, path)
+    write_truth(truth_data, 'ground_truth.json')
 
 if (__name__ == '__main__'):
     main()
