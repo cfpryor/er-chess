@@ -7,7 +7,7 @@ import time
 TRUTH_NAME = [  'Email', 'Twitch', 'Facebook_Link', 'Twitter_Link', 'Twitter_Handle',
                 'Instagram_Link', 'Github_Link', 'Linkedin_Link', 'Googleplus_Link',
                 'Discord_Link', 'Myspace_Link', 'Lichess_Link', 'Youtube_Channel',
-                'FIDE_Link', 'USCF_Link']
+                'FIDE_Link', 'USCF_Link', 'ChessCom_Link']
 TRUTH_REGEX = [ '[\w\.-]+@[\w\.-]+',
                 'twitch.tv/[\S]+',
                 'facebook.com/[\S]+',
@@ -22,7 +22,8 @@ TRUTH_REGEX = [ '[\w\.-]+@[\w\.-]+',
                 'lichess.org/[\S]+',
                 'youtube.com/channel/[\S]+',
                 'ratings.fide.com/[\S]+',
-                'uschess.org/[\S]+']
+                'uschess.org/[\S]+',
+                'chess.com/member/[\S]+']
 
 # '[0-9]{3}-[0-9]{3}-[0-9]{4}|([0-9]{3})[0-9]{3}-[0-9]{4}|[0-9]{3}-[0-9]{4}|1[0-9]{3}-[0-9]{3}-[0-9]{4}'
 
@@ -50,20 +51,21 @@ def load_data(path):
 
 def _load_args(args):
     executable = args.pop(0)
-    if (len(args) != 1 or ({'h', 'help'} & {arg.lower().strip().replace('-', '') for arg in args})):
-        print("USAGE: python3 %s <data path>" % (executable), file = sys.stderr)
+    if (len(args) != 2 or ({'h', 'help'} & {arg.lower().strip().replace('-', '') for arg in args})):
+        print("USAGE: python3 %s <data path> <out_path>" % (executable), file = sys.stderr)
         sys.exit(1)
 
     data_path = args.pop(0)
+    out_path = args.pop(0)
 
-    return data_path
+    return data_path, out_path
 
 def main():
-    data_path = _load_args(sys.argv)
+    data_path, out_path = _load_args(sys.argv)
 
     data_dict = load_data(data_path)
     truth_data = extract_truth_data(data_dict)
-    write_truth(truth_data, 'ground_truth.json')
+    write_truth(truth_data, out_path)
 
 if (__name__ == '__main__'):
     main()

@@ -28,11 +28,12 @@ def fetch_profile_info(username, path, desired_sections = DESIRED_SECTIONS):
             for section_start in desired_sections:
                 if section_start in line:
                     desired_sections[section_start][1] = True
-                    continue
+                    if section_start == line.strip():
+                        continue
                 elif desired_sections[section_start][0] in line and desired_sections[section_start][1]: 
                     desired_sections[section_start][1] = False
 
-                if desired_sections[section_start][1] == True and line != "":
+                if desired_sections[section_start][1] == True and line.strip() != "":
                     profile_info += line
 
     return profile_info
