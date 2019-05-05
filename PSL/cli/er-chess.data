@@ -1,0 +1,11 @@
+predicates:
+  Profiles/2: open
+
+observations:
+  Profiles : ../data/profiles_obs.txt
+
+targets:
+  Profiles : ../data/profiles_targets.txt
+
+truth:
+  Profiles : ../data/profiles_truth.txt
