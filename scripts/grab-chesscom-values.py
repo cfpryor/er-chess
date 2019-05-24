@@ -136,7 +136,7 @@ def load_users(user_path):
     with open(user_path, 'r') as file:
         return json.load(file)
 
-def load_profiles(user_list, out_path, username):
+def load_profiles(out_path, username):
     if not os.path.isdir(out_path):
         os.mkdir(out_path)
 
@@ -167,17 +167,22 @@ def main():
     user_data = {}
 
     for username in user_list:
-        # load_profiles(user_list, out_path, username)
-        user_data[username] = {'Website':'chesscom'}
+        #print(username, count)
+        #load_profiles(out_path, username)
+        
+        if username in user_data:
+            continue
+        username_lower = username.lower()
+        user_data[username_lower] = {'Website':'chesscom'}
         for url_base, out_filename in URL_DICT:
-            profile_path = os.path.join(out_path, username, out_filename)
+            profile_path = os.path.join(out_path, username_lower, out_filename)
             if out_filename.split(".")[-1] == TXT_SUFFIX:
                 if os.path.isfile(profile_path):
-                    user_data[username].update(parse_html_file(profile_path))
+                    user_data[username_lower].update(parse_html_file(profile_path))
             elif out_filename.split(".")[-1] == JSON_SUFFIX:
                 if os.path.isfile(profile_path):
-                    user_data[username].update(parse_json_file(profile_path))
-    with open('chesscom_tmp.json', 'w') as file:
+                    user_data[username_lower].update(parse_json_file(profile_path))
+    with open('../data/finalized_profiles/chesscom_profile_information.json', 'w') as file:
         json.dump(user_data, file, indent = 4)
         #return
 if (__name__ == '__main__'):

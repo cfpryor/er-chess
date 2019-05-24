@@ -75,7 +75,7 @@ def load_users(user_path):
     with open(user_path, 'r') as file:
         return json.load(file)
 
-def load_profiles(user_list, out_path, username):
+def load_profiles(out_path, username):
     if not os.path.isdir(out_path):
         os.mkdir(out_path)
 
@@ -106,14 +106,15 @@ def main():
     user_data = {}
 
     for username in user_list:
-        #load_profiles(user_list, out_path, username)
+        #load_profiles(out_path, username)
+        #print(username, count)
         user_data[username] = {'Website': 'lichess'}
         for url_base, out_filename in URL_DICT:
             profile_path = os.path.join(out_path, username, out_filename)
             if out_filename.split(".")[-1] == TXT_SUFFIX:
                 if os.path.isfile(profile_path):
                     user_data[username].update(parse_html_file(profile_path))
-    with open('lichess_tmp.json', 'w') as file:
+    with open('../data/finalized_profiles/lichess_profile_information.json', 'w') as file:
         json.dump(user_data, file, indent = 4)
         return
 if (__name__ == '__main__'):

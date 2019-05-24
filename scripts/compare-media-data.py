@@ -6,34 +6,72 @@ import time
 
 CHESSCOM_FILENAME = 'chesscom_profiles.json'
 LICHESS_FILENAME = 'lichess_profiles.json'
+POS_GROUND_TRUTH_FILENAME = 'positive_ground_truth.json'
 
 CHESSCOM_KEY = 'chesscom'
 LICHESS_KEY = 'lichess'
 
-def write_user_list(user_set, path):
-    if not os.path.isdir(path):
-        os.mkdir(path)
-
-    chesscom_list = []
-    lichess_list = []
-
-    for user, website in user_set:
-        if website == CHESSCOM_KEY:
-            chesscom_list.append(user)
-        elif website == LICHESS_KEY:
-            lichess_list.append(user)
-        else:
-            print("Error -- User: %s Website: %s" % (user, website))
-
-    with open(os.path.join(path, CHESSCOM_FILENAME), 'w') as file:
-        json.dump(chesscom_list, file, indent = 4)
-    
-    with open(os.path.join(path, LICHESS_FILENAME), 'w') as file:
-        json.dump(lichess_list, file, indent = 4)
+def write_user_list(user_list, path):
+    with open(path, 'w') as file:
+        json.dump(user_list, file, indent = 4)
 
 def load_data(path):
     with open(path, 'r') as file:
         return json.load(file)
+
+def match_truth(id_dict, output_path):
+    chesscom_regex = '(chess).com/member/([^"]+)'
+    lichess_regex = '(lichess).org/@/([^"]+)'
+    
+    handle_mapping = set()
+    chesscom_set = set()
+    lichess_set = set()
+
+    handle_dict = {}
+
+    for user_id in id_dict:
+        if user_id[1] == CHESSCOM_KEY:
+            chesscom_set.add(user_id[0])
+        if user_id[1] == LICHESS_KEY:
+            lichess_set.add(user_id[0])
+
+        for handle_id in range(1, len(id_dict[user_id]) - 1):
+            if id_dict[user_id][handle_id] == None:
+                continue
+            
+            match = re.search(r'' + lichess_regex, id_dict[user_id][handle_id])
+            if match != None:
+                user_id_match = (match.group(2).lower(), LICHESS_KEY)
+                lichess_set.add(match.group(2).lower())
+                
+                if (user_id, user_id_match) not in handle_mapping and (user_id_match, user_id) not in handle_mapping:
+                    handle_mapping.add((user_id, user_id_match))
+
+            match = re.search(r'' + chesscom_regex, id_dict[user_id][handle_id])
+            if match != None:
+                user_id_match = (match.group(2).lower(), CHESSCOM_KEY)
+                chesscom_set.add(match.group(2).lower())
+
+                if (user_id, user_id_match) not in handle_mapping and (user_id_match, user_id) not in handle_mapping:
+                    handle_mapping.add((user_id, user_id_match))
+
+            if id_dict[user_id][handle_id] not in handle_dict:
+                handle_dict[id_dict[user_id][handle_id]] = []
+
+            handle_dict[id_dict[user_id][handle_id]].append(user_id)
+    
+    for key in handle_dict:
+        if key in ["facebook.com/\"", "chess.com/member/gary_sorkin\"><a", "youtube.com/channel/UCKGR-mRvc0U3lS27SC9pemQ\""]:
+            continue
+        if len(handle_dict[key]) > 1:
+            for i in range(0, len(handle_dict[key])):
+                for j in range(i, len(handle_dict[key])):
+                    if (handle_dict[key][i], handle_dict[key][j]) not in handle_mapping and (handle_dict[key][j], handle_dict[key][i]) not in handle_mapping:
+                        handle_mapping.add((handle_dict[key][i], handle_dict[key][j]))
+
+    write_user_list(list(chesscom_set), os.path.join(output_path, CHESSCOM_FILENAME))
+    write_user_list(list(lichess_set), os.path.join(output_path, LICHESS_FILENAME))
+    write_user_list(list(handle_mapping), os.path.join(output_path, POS_GROUND_TRUTH_FILENAME))
 
 def match_ground_truth(truth_data_dict):
     mapping_dict = {}
@@ -60,7 +98,7 @@ def match_ground_truth(truth_data_dict):
                         users_set.add((match.group(2), match.group(1)))
                     if user_key not in direct_match_dict:
                         direct_match_dict[user_key] = []
-                    direct_match_dict[user_key].append([truth_data_dict[user_key][-1], match.group(2), LICHESS_KEY, truth_data_dict[user_key][handle_index]])
+                    direct_match_dict[user_key].append([truth_data_dict[user_key][-1], match.group(2).lower(), LICHESS_KEY, truth_data_dict[user_key][handle_index]])
 
             if handle_index == 15:
                 if handle_index < len(truth_data_dict[user_key]):
@@ -70,7 +108,7 @@ def match_ground_truth(truth_data_dict):
                         users_set.add((match.group(2), match.group(1) + 'com'))
                     if user_key not in direct_match_dict:
                         direct_match_dict[user_key] = []
-                    direct_match_dict[user_key].append([truth_data_dict[user_key][-1], match.group(2), CHESSCOM_KEY, truth_data_dict[user_key][handle_index]])
+                    direct_match_dict[user_key].append([truth_data_dict[user_key][-1], match.group(2).lower(), CHESSCOM_KEY, truth_data_dict[user_key][handle_index]])
 
             if truth_data_dict[user_key][handle_index] not in mapping_dict:
                 mapping_dict[truth_data_dict[user_key][handle_index]] = []
@@ -88,13 +126,23 @@ def match_ground_truth(truth_data_dict):
                     if user_i != user_j:
                         if user_i not in direct_match_dict:
                             direct_match_dict[user_i] = []
-                        direct_match_dict[user_i].append([website_i, user_j, website_j, key])
+                        direct_match_dict[user_i].append([website_i, user_j.lower(), website_j, key])
 
     with open('positive_ground_truth.json', 'w') as file:
         json.dump(direct_match_dict, file, indent = 4)
 
     print(len(users_set), len(direct_match_dict), match_count)
     return users_set
+
+def assign_ids(data):
+    id_dict = {}
+    
+    for data_dict in data:
+        for user in data_dict:
+            if (user.lower(), data_dict[user][-1]) not in id_dict:
+                id_dict[(user.lower(), data_dict[user][-1])] = [user.lower()] + data_dict[user]
+
+    return id_dict
 
 def _load_args(args):
     executable = args.pop(0)
@@ -110,15 +158,19 @@ def _load_args(args):
 def main():
     data_path, output_path = _load_args(sys.argv)
     total_dict = {}
+    data_list = []
 
     for data_file in os.listdir(data_path):
         data_dict = load_data(os.path.join(data_path, data_file))
         for key in data_dict:
             data_dict[key].append(data_file.split("_")[0])
-        total_dict.update(data_dict)
-
-    users_set = match_ground_truth(total_dict)
-    #write_user_list(users_set, output_path)
+        data_list.append(data_dict)
+    
+    id_dict = assign_ids(data_list)
+    match_truth(id_dict, output_path)
+    #for user_id in id_dict:
+    #    print(user_id, id_dict[user_id])
+    #users_set = match_ground_truth(total_dict)
 
 if (__name__ == '__main__'):
     main()

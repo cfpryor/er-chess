@@ -25,8 +25,6 @@ TRUTH_REGEX = [ '[\w\.-]+@[\w\.-]+',
                 'uschess.org/[\S]+',
                 'chess.com/member/[\S]+']
 
-# '[0-9]{3}-[0-9]{3}-[0-9]{4}|([0-9]{3})[0-9]{3}-[0-9]{4}|[0-9]{3}-[0-9]{4}|1[0-9]{3}-[0-9]{3}-[0-9]{4}'
-
 def write_truth(truth_data, path):
     with open(path, 'w') as file:
         json.dump(truth_data, file, indent = 4)
