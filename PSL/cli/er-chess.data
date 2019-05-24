@@ -1,11 +1,24 @@
 predicates:
-  Profiles/2: open
+  SameCountry/2: closed
+  SimilarUsername/2: closed
+  SimilarName/2: closed
+  LocalLR/2: closed
+  WebDiffUserSame/2: closed
+
+  SimilarProfile/2: open
+  SameUser/2: open
 
 observations:
-  Profiles : ../data/profiles_obs.txt
+  SameCountry : ../../data/splits/split_0/psl/country_same_obs.txt
+  SimilarUsername : ../../data/splits/split_0/psl/username_sim_obs.txt
+  SimilarName: ../../data/splits/split_0/psl/name_sim_obs.txt
+  LocalLR: ../../data/splits/split_0/psl/lr_local_obs.txt
+  SameUser: ../../data/splits/split_0/psl/same_user_obs.txt
+  WebDiffUserSame: ../../data/splits/split_0/psl/web_user_obs.txt
 
 targets:
-  Profiles : ../data/profiles_targets.txt
+  SameUser : ../../data/splits/split_0/psl/same_user_target.txt
+  SimilarProfile: ../../data/splits/split_0/psl/profile_sim.txt
 
 truth:
-  Profiles : ../data/profiles_truth.txt
+  SameUser : ../../data/splits/split_0/psl/same_user_truth.txt

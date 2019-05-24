@@ -4,8 +4,8 @@ readonly PSL_VERSION='2.2.0-SNAPSHOT'
 readonly JAR_PATH="./psl-cli-${PSL_VERSION}.jar"
 readonly BASE_NAME='er-chess'
 
-readonly ADDITIONAL_PSL_OPTIONS=''
-readonly ADDITIONAL_EVAL_OPTIONS='--infer --eval org.linqs.psl.evaluation.statistics.DiscreteEvaluator'
+readonly ADDITIONAL_PSL_OPTIONS='-D log4j.threshold=TRACE'
+readonly ADDITIONAL_EVAL_OPTIONS='--infer --eval org.linqs.psl.evaluation.statistics.DiscreteEvaluator -D discreteevaluator.threshold=0.3'
 
 function main() {
    trap exit SIGINT
