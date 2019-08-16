@@ -105,15 +105,16 @@ def update_data(data_path, output_path):
 
         # Convert all game files
         stats['has_games'] = False
-        for year_directory in os.listdir(os.path.join(source_user_path, GAME_DIRECTORY)):
-            if year_regex.search(year_directory) != None:
-                for month_directory in os.listdir(os.path.join(source_user_path, GAME_DIRECTORY, year_directory)):
-                    game_file = os.path.join(os.path.join(source_user_path, GAME_DIRECTORY, year_directory, month_directory, SOURCE_GAMES))
-                    if not os.path.isfile(game_file):
-                        continue
+        if os.path.isdir(os.path.join(source_user_path, GAME_DIRECTORY)):
+            for year_directory in os.listdir(os.path.join(source_user_path, GAME_DIRECTORY)):
+                if year_regex.search(year_directory) != None:
+                    for month_directory in os.listdir(os.path.join(source_user_path, GAME_DIRECTORY, year_directory)):
+                        game_file = os.path.join(os.path.join(source_user_path, GAME_DIRECTORY, year_directory, month_directory, SOURCE_GAMES))
+                        if not os.path.isfile(game_file):
+                            continue
 
-                    gzip_json(game_file, os.path.join(output_user_path, year_directory + "_" +  month_directory + OUTPUT_GAMES))
-                    stats['has_games'] = True
+                        gzip_json(game_file, os.path.join(output_user_path, year_directory + "_" +  month_directory + OUTPUT_GAMES))
+                        stats['has_games'] = True
 
         # Write the stats file
         with open(os.path.join(output_user_path, OUTPUT_STATS), 'w') as output_file:

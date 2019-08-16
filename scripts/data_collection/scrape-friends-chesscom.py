@@ -23,6 +23,8 @@ SLEEP_TIME_MS = 500
 # https://www.chess.com/callback/leaderboard/live/lightning?friendsOfId=51429148&page=1
 
 # 2466453
+# hikaru - 15448422
+# cofytea - 27495250
 #Website Variables
 URL_BASE_MEMBER = 'https://www.chess.com/stats/live/bullet/'
 #URL_BASE_MEMBER = 'https://www.chess.com/member'

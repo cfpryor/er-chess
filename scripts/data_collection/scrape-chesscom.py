@@ -1,0 +1,234 @@
+import gzip
+import json
+import os
+import sys
+import time
+import urllib.request
+
+# Constants
+SLEEP_TIME_MS = 500
+DEFAULT_TIMEOUT = 60
+START_YEAR = 2019
+START_MONTH = 4
+MAX_EXPIRE_ATTEMPTS = 10
+MAX_ATTEMPTS = 3
+
+GAMEMODE_FRIEND_LISTS = ['bullet', 'blitz', 'rapid']
+FRIENDS_PREFIX = '?friendsOfId='
+FRIENDS_SUFFIX = '&page='
+PLAYER_ID = 'player_id'
+
+# Website Variables
+WEBSITE_BASE = 'https://www.chess.com'
+MEMBER_BASE = os.path.join(WEBSITE_BASE, 'member')
+STATS_BASE = os.path.join(WEBSITE_BASE, 'stats', 'live')
+CALLBACK_BASE = os.path.join(WEBSITE_BASE, 'callback')
+CALLBACK_STATS_BASE = os.path.join(CALLBACK_BASE, 'member', 'stats')
+CALLBACK_LEADERBOARD_BASE = os.path.join(CALLBACK_BASE, 'leaderboard', 'live')
+
+# API Variables
+API_BASE = 'https://api.chess.com/pub/player/'
+GAMES_BASE = 'games'
+ARCHIVE_BASE = os.path.join(GAMES_BASE, 'archives')
+
+# Outupt Filenames
+OUTPUT_API_PROFILE = 'api_profile.json.gz'
+OUTPUT_ARCHIVE = 'archive.json.gz'
+OUTPUT_CALLBACK_STATS = 'callback_stats.json.gz'
+OUTPUT_GAMES = '.json.gz'
+OUTPUT_OPPONENTS = 'opponents.json.gz'
+OUTPUT_PROFILE = 'profile.html.gz'
+OUTPUT_STATS = 'stats.json'
+
+# Global variables
+last_fetch = 0
+start_log = int(time.time() * 1000)
+
+# Name to lowercase
+def clean_name(username):
+    return username.lower()
+
+# Used to collect users in a json file
+def collect_users(game_response, context_user = None):
+    users = set()
+
+    # Look through all games and find the users opponent
+    for game in game_response['games']:
+        for side in ['white', 'black']:
+            name = clean_name(game[side]['username'])
+            if (name != context_user):
+                users.add(name)
+
+    return users
+
+# Logging output
+def log(message, level = 'INFO'):
+    global start_log
+
+    program_time = int(time.time() * 1000) - start_log
+
+    # Prints log containing time since start of program, message level, and the message
+    print("%7d %8s: %s" % (program_time, level, message))
+    sys.stdout.flush()
+
+# Fetch url
+def fetch_url(url, default_timeout = DEFAULT_TIMEOUT):
+    global last_fetch
+
+    log("Fetching: " + url)
+    # Sleep to avoid rate limiting
+    sleep_time_sec = (SLEEP_TIME_MS - (int(time.time() * 1000) - last_fetch)) / 1000.0
+    if (sleep_time_sec > 0):
+        time.sleep(sleep_time_sec)
+
+    # Try and make the url request, catching any errors
+    # There were some sneaky errors here so these excepts needed to be made
+    try:
+        # Create the request as a user agent
+        request = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        response = urllib.request.urlopen(request, timeout=default_timeout).read().decode('utf-8')
+        last_fetch = int(time.time() * 1000)
+    except (HTTPError, URLError) as error:
+        log('Data not retrieved because %s\nURL: %s' % (error, url), level = 'ERROR')
+        last_fetch = int(time.time() * 1000)
+        return None
+    except timeout:
+        log('Socket timed out - URL %s' % (url), level = 'ERROR')
+        last_fetch = int(time.time() * 1000)
+        return None
+    except http.client.IncompleteRead as icread:
+        log('Incomplete Read %s - URL %s' % (icread, url), level = 'ERROR')
+        last_fetch = int(time.time() * 1000)
+        return None
+    except Exception as error:
+        log('Other error - %s' % (error), level = 'ERROR')
+        last_fetch = int(time.time() * 1000)
+        return None
+
+    return response
+
+# Gzip and write
+def gzip_data(data, output_path):
+    with gzip.open(output_path, 'wb') as output_file:
+        output_file.write(data.encode())
+
+# Gzip and write json
+def gzip_json(data, output_path):
+    with gzip.GzipFile(output_path, 'w') as output_file:
+        output_file.write(json.dumps(data).encode('utf-8')) 
+
+# Fetch all relavent information on a user
+def fetch_data(username, output_path):
+    opponents = set()
+    friends = {}
+    stats = {}
+
+    # Grab api profile json
+    attempts = 0
+    stats['has_api_profile'] = False
+    while(attempts < MAX_ATTEMPTS):
+        api_profile_response = json.loads(fetch_url(os.path.join(API_BASE, username)))
+        if api_profile_response != None:
+            gzip_json(api_profile_response, os.path.join(output_path, OUTPUT_API_PROFILE))
+            stats['has_api_profile'] = True
+            break
+        attempts += 1
+
+    # Grab profile html
+    attempts = 0
+    stats['has_profile'] = False
+    while(attempts < MAX_ATTEMPTS):
+        profile_response = fetch_url(os.path.join(MEMBER_BASE, username))
+        if profile_response != None
+            gzip_data(profile_response, os.path.join(output_path, OUTPUT_PROFILE))
+            stats['has_profile'] = True
+            break
+        attempts += 1
+
+    # Grab callback stats json
+    attempts = 0
+    stats['has_callback_stats'] = False
+    while(attempts < MAX_ATTEMPTS):
+        callback_stats_response = json.loads(fetch_url(os.path.join(CALLBACK_STATS_BASE, username)))
+        if callback_stats_response != None
+            gzip_json(callback_stats_response, os.path.join(output_path, OUTPUT_CALLBACK_STATS))
+            stats['has_callback_stats'] = True
+            break
+        attempts += 1
+
+    # Grab archive json
+    attempts = 0
+    stats['has_game_archive'] = False
+    while(attempts < MAX_ATTEMPTS):
+        archive_response = json.loads(fetch_url(os.path.join(API_BASE, username, ARCHIVE_BASE)))
+        if archive_response != None
+            gzip_json(archive_response['archives'], os.path.join(output_path, OUTPUT_ARCHIVE))
+            stats['has_game_archive'] = True
+            break
+        attempts += 1
+
+    # Grab game json
+    for link in archive_response['archives']:
+        parts = link.rstrip('/').split('/')
+        year, month = int(parts[-2]), int(parts[-1])
+
+        # Skip the request if the games happen before the starting date
+        if (year < START_YEAR or (year == START_YEAR and month < START_MONTH)):
+            continue
+
+        game_response = json.loads(fetch_url(link))
+        opponents |= collect_users(game_response, username)
+        gzip_json(game_response, os.path.join(output_path, str(year) + "_" + str(month).zfill(2) + OUTPUT_GAMES))
+
+    # Write opponent list
+    stats['has_opponent_list'] = True
+    gzip_json(list(opponents), os.path.join(output_path, OUTPUT_OPPONENTS))
+
+    # Gather friend list
+    if PLAYER_ID in api_profile_response:
+        profile_id = api_profile_response[PLAYER_ID]
+
+        for gamemode in GAMEMODE_FRIEND_LISTS:
+            # Friend pages are timed out for most users, so a profile request is needed
+            fetch_url(os.path.join(STATS_BASE, gamemode, username))
+            max_expire_attempts = MAX_EXPIRE_ATTEMPTS
+            friends[gamemode] = []
+            page_number = 1
+
+            # Grab all the friends
+            while True:
+                req = gamemode + FRIENDS_PREFIX + str(profile_id) + FRIENDS_SUFFIX + str(page_number)
+                current_friend_req = json.loads(fetch_url(os.path.join(CALLBACK_LEADERBOARD_BASE, req)))
+
+                # Empty leaders key means no more pages
+                if len(current_friend_req['leaders']) == 0:
+                    # Except if the friends page has expired
+                    if current_friend_req['expired']:
+                        fetch_url(os.path.join(STATS_BASE, gamemode, username))
+                        max_expire_attempts -= 1
+                        continue
+                    break
+
+                friends[gamemode].extend(current_friend_req['leaders'])
+                page_number += 1
+
+    # Write the friend lists
+    for gamemode in GAMEMODE_FRIEND_LISTS:
+        if gamemode not in friends:
+            friends[gamemode] = []
+        gzip_json(friends[gamemode], os.path.join(output_path, 'friends_' + gamemode + OUTPUT_GAMES))
+
+def main():
+    # TEST
+    user = 'hikaru'
+    #user = 'cofytea'
+    if not os.path.isdir('testing'):
+        os.mkdir('testing')
+    if not os.path.isdir(os.path.join('testing', user)):
+        os.mkdir(os.path.join('testing', user))
+
+    fetch_data(user, os.path.join('testing', user))
+    return
+
+if (__name__ == '__main__'):
+    main()
