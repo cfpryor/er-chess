@@ -3,6 +3,7 @@ import json
 import os
 import socket
 import sys
+import tarfile
 import time
 import urllib.request
 
@@ -18,6 +19,7 @@ GAMEMODE_FRIEND_LISTS = ['bullet', 'blitz', 'rapid']
 FRIENDS_PREFIX = '?friendsOfId='
 FRIENDS_SUFFIX = '&page='
 PLAYER_ID = 'player_id'
+TAR_SUFFIX = '.tar'
 
 # Website Variables
 WEBSITE_BASE = 'https://www.chess.com'
@@ -248,6 +250,13 @@ def fetch_data(username, output_path):
     # Write the stats file
     with open(os.path.join(output_path, OUTPUT_STATS), 'w') as output_file:
         json.dump(stats, output_file)
+    
+    # Tar up all files except for stats file
+    with tarfile.open(os.path.join(output_path, username + TAR_SUFFIX), 'w') as tar:
+        for filename in os.listdir(output_path):
+            if filename != OUTPUT_STATS and filename != username + TAR_SUFFIX:
+                tar.add(os.path.join(output_path, filename), arcname = filename)
+                os.remove(os.path.join(output_path, filename))
 
 def main():
     # TEST
