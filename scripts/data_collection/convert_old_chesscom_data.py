@@ -89,7 +89,9 @@ def update_data(data_path, output_path):
         # Create stats file
         stats['time_completed'] = os.stat(source_user_path).st_mtime
         stats['server'] = socket.gethostname()
-        stats['friends'] = False
+        stats['has_friends'] = False
+        stats['has_api_profile'] = False
+        stats['has_callback_stats'] = False
 
         # Convert archive file
         stats['has_game_archive'] = os.path.isfile(os.path.join(source_user_path, SOURCE_ARCHIVE))

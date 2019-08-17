@@ -116,7 +116,7 @@ def gzip_data(data, output_path):
 # Gzip and write json
 def gzip_json(data, output_path):
     with gzip.GzipFile(output_path, 'w') as output_file:
-        output_file.write(json.dumps(data).encode('utf-8')) 
+        output_file.write(json.dumps(data).encode('utf-8'))
 
 # Fetch all relavent information on a user
 def fetch_data(username, output_path):
