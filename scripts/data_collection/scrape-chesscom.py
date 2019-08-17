@@ -1,6 +1,7 @@
 import gzip
 import json
 import os
+import socket
 import sys
 import time
 import urllib.request
@@ -8,7 +9,7 @@ import urllib.request
 # Constants
 SLEEP_TIME_MS = 500
 DEFAULT_TIMEOUT = 60
-START_YEAR = 2019
+START_YEAR = 2017
 START_MONTH = 4
 MAX_EXPIRE_ATTEMPTS = 10
 MAX_ATTEMPTS = 3
@@ -139,7 +140,7 @@ def fetch_data(username, output_path):
     stats['has_profile'] = False
     while(attempts < MAX_ATTEMPTS):
         profile_response = fetch_url(os.path.join(MEMBER_BASE, username))
-        if profile_response != None
+        if profile_response != None:
             gzip_data(profile_response, os.path.join(output_path, OUTPUT_PROFILE))
             stats['has_profile'] = True
             break
@@ -150,7 +151,7 @@ def fetch_data(username, output_path):
     stats['has_callback_stats'] = False
     while(attempts < MAX_ATTEMPTS):
         callback_stats_response = json.loads(fetch_url(os.path.join(CALLBACK_STATS_BASE, username)))
-        if callback_stats_response != None
+        if callback_stats_response != None:
             gzip_json(callback_stats_response, os.path.join(output_path, OUTPUT_CALLBACK_STATS))
             stats['has_callback_stats'] = True
             break
@@ -161,31 +162,41 @@ def fetch_data(username, output_path):
     stats['has_game_archive'] = False
     while(attempts < MAX_ATTEMPTS):
         archive_response = json.loads(fetch_url(os.path.join(API_BASE, username, ARCHIVE_BASE)))
-        if archive_response != None
+        if archive_response != None:
             gzip_json(archive_response['archives'], os.path.join(output_path, OUTPUT_ARCHIVE))
             stats['has_game_archive'] = True
             break
         attempts += 1
 
     # Grab game json
-    for link in archive_response['archives']:
-        parts = link.rstrip('/').split('/')
-        year, month = int(parts[-2]), int(parts[-1])
+    stats['has_games'] = False
+    if 'archives' in archive_response:
+        stats['has_games'] = True
+        for link in archive_response['archives']:
+            parts = link.rstrip('/').split('/')
+            year, month = int(parts[-2]), int(parts[-1])
 
-        # Skip the request if the games happen before the starting date
-        if (year < START_YEAR or (year == START_YEAR and month < START_MONTH)):
-            continue
+            # Skip the request if the games happen before the starting date
+            if (year < START_YEAR or (year == START_YEAR and month < START_MONTH)):
+                continue
 
-        game_response = json.loads(fetch_url(link))
-        opponents |= collect_users(game_response, username)
-        gzip_json(game_response, os.path.join(output_path, str(year) + "_" + str(month).zfill(2) + OUTPUT_GAMES))
+            attempts = 0
+            while(attempts < MAX_ATTEMPTS):
+                game_response = json.loads(fetch_url(link))
+                if game_response != None:
+                    opponents |= collect_users(game_response, username)
+                    gzip_json(game_response, os.path.join(output_path, str(year) + "_" + str(month).zfill(2) + OUTPUT_GAMES))
+                    break
+                attempts += 1
 
     # Write opponent list
     stats['has_opponent_list'] = True
     gzip_json(list(opponents), os.path.join(output_path, OUTPUT_OPPONENTS))
 
     # Gather friend list
+    stats['has_friends'] = False
     if PLAYER_ID in api_profile_response:
+        stats['has_friends'] = True
         profile_id = api_profile_response[PLAYER_ID]
 
         for gamemode in GAMEMODE_FRIEND_LISTS:
@@ -194,11 +205,22 @@ def fetch_data(username, output_path):
             max_expire_attempts = MAX_EXPIRE_ATTEMPTS
             friends[gamemode] = []
             page_number = 1
+            attempts = 0
 
             # Grab all the friends
             while True:
                 req = gamemode + FRIENDS_PREFIX + str(profile_id) + FRIENDS_SUFFIX + str(page_number)
                 current_friend_req = json.loads(fetch_url(os.path.join(CALLBACK_LEADERBOARD_BASE, req)))
+
+                # Need to put this in to prevent infinite looping failures
+                if attempts == MAX_ATTEMPTS:
+                    max_expire_attempts -= 1
+                    page_number += 1
+                    continue
+                # If the request was bad, try again up to the maximum number of times
+                elif current_friend_req == None:
+                    attempts += 1
+                    continue
 
                 # Empty leaders key means no more pages
                 if len(current_friend_req['leaders']) == 0:
@@ -211,17 +233,26 @@ def fetch_data(username, output_path):
 
                 friends[gamemode].extend(current_friend_req['leaders'])
                 page_number += 1
+                attempts = 0
 
     # Write the friend lists
     for gamemode in GAMEMODE_FRIEND_LISTS:
         if gamemode not in friends:
             friends[gamemode] = []
         gzip_json(friends[gamemode], os.path.join(output_path, 'friends_' + gamemode + OUTPUT_GAMES))
+    
+    # Completed gathering data
+    stats['time_completed'] = time.time()
+    stats['server'] = socket.gethostname()
+
+    # Write the stats file
+    with open(os.path.join(output_path, OUTPUT_STATS), 'w') as output_file:
+        json.dump(stats, output_file)
 
 def main():
     # TEST
-    user = 'hikaru'
-    #user = 'cofytea'
+    #user = 'hikaru'
+    user = 'cofytea'
     if not os.path.isdir('testing'):
         os.mkdir('testing')
     if not os.path.isdir(os.path.join('testing', user)):
