@@ -258,6 +258,8 @@ def fetch_data(username, output_path):
                 tar.add(os.path.join(output_path, filename), arcname = filename)
                 os.remove(os.path.join(output_path, filename))
 
+    return(opponents)
+
 def main():
     # TEST
     #user = 'hikaru'
