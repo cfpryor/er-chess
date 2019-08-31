@@ -223,9 +223,13 @@ def fetch_data(username, output_path):
                     current_friend_req = fetch_url(os.path.join(CALLBACK_LEADERBOARD_BASE, req))
 
                     # Need to put this in to prevent infinite looping failures
+                    if max_expire_attempts == 0:
+                        break
+
                     if attempts == MAX_ATTEMPTS:
                         max_expire_attempts -= 1
                         page_number += 1
+                        attempts = 0
                         continue
                     # If the request was bad, try again up to the maximum number of times
                     elif current_friend_req == None:
