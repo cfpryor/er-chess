@@ -32,9 +32,6 @@ def gather_data(users, path):
             if count % 100000 == 0:
                 log(("Line %d of 623582920") % (count))
 
-            if count == 1000000:
-                break
-
             line = line.decode("utf-8").lower().strip()
             if line.startswith("[event"):
                 if gathering_white != None:
