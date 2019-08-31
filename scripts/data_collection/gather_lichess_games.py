@@ -56,19 +56,6 @@ def gather_data(users, path):
 
     return users
 
-def load_queries(data):
-    chesscom_dict = {}
-    lichess_dict = {}
-
-    for pair in data:
-        for user in pair:
-            if user[1] == 'lichess':
-                lichess_dict[user[0]] = []
-            if user[1] == 'chesscom':
-                chesscom_dict[user[0]] = []
-
-    return chesscom_dict, lichess_dict
-
 def load_data(path):
     log("Loading: %s" % (path))
     if not os.path.isfile(path):
@@ -93,10 +80,13 @@ def _load_args(args):
 def main():
     data_path, user_path, output_filename = _load_args(sys.argv)
 
-    ground_truth_data = load_data(user_path)
-    chesscom, lichess = load_queries(ground_truth_data)
+    users_list = load_data(user_path)
+    print(users_list)
+    users_dict = {}
+    for user in users_list:
+        users_dict[user] = []
 
-    users = gather_data(lichess, data_path)
+    users = gather_data(users_dict, data_path)
     with open(output_filename, 'w') as out_file:
         json.dump(users, out_file, indent=4)
 

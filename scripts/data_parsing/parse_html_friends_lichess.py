@@ -37,7 +37,7 @@ def find_users(data):
 
 def parse_html_files(data_path):
     user_dict = {}
-    friend_set = set()
+    user_set = set()
     counter = 0
 
     for username in os.listdir(data_path):
@@ -67,9 +67,10 @@ def parse_html_files(data_path):
                 file_counter += 1
 
         user_dict[username] = list(set(followers) & set(following))
-        friend_set |= set(followers) & set(following)
+        user_set |= set(followers) & set(following)
+        user_set.add(username)
 
-    return user_dict, friend_set
+    return user_dict, user_set
 
 def _load_args(args):
     executable = args.pop(0)
@@ -83,9 +84,12 @@ def _load_args(args):
 
 def main():
     data_path = _load_args(sys.argv)
-    user_dict, friend_set = parse_html_files(data_path)
+    user_dict, user_set = parse_html_files(data_path)
 
-    print(len(friend_set))
+    with open("lichess_users.txt", 'w') as out_file:
+        json.dump(list(user_set), out_file, indent = 4)
+
+    print(len(user_set))
     #print(friend_list, friend_set)
 
 if (__name__ == '__main__'):
