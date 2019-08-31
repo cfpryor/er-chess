@@ -81,7 +81,6 @@ def main():
     data_path, user_path, output_filename = _load_args(sys.argv)
 
     users_list = load_data(user_path)
-    print(users_list)
     users_dict = {}
     for user in users_list:
         users_dict[user] = []
