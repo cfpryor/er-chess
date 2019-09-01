@@ -1,24 +1,53 @@
 predicates:
-  SameCountry/2: closed
-  SimilarUsername/2: closed
-  SimilarName/2: closed
+  BothStreamers/2: closed
+  Friends/2: closed
   LocalLR/2: closed
-  WebDiffUserSame/2: closed
+  NameJW/2: closed
+  NameL/2: closed
+  Opponents/2: closed
+  SameCountry/2: closed
+  SameLocation/2: closed
+  SameTitle/2: closed
+  SameWebsite/2: closed
+  SimilarEcoDraws/2: closed
+  SimilarEcoGames/2: closed
+  SimilarEcoLosses/2: closed
+  SimilarEcoWins/2: closed
+  SimilarRatingBullet/2: closed
+  SimilarRatingLightning/2: closed
+  SimilarRatingRapid/2: closed
+  SimilarRatingTactics/2: closed
+  UsernameJW/2: closed
+  UsernameL/2: closed
 
-  SimilarProfile/2: open
   SameUser/2: open
 
 observations:
-  SameCountry : ../../data/splits/split_0/psl/country_same_obs.txt
-  SimilarUsername : ../../data/splits/split_0/psl/username_sim_obs.txt
-  SimilarName: ../../data/splits/split_0/psl/name_sim_obs.txt
-  LocalLR: ../../data/splits/split_0/psl/lr_local_obs.txt
-  SameUser: ../../data/splits/split_0/psl/same_user_obs.txt
-  WebDiffUserSame: ../../data/splits/split_0/psl/web_user_obs.txt
+  BothStreamers : ../data/splits/split_0/psl/streamer_obs.txt
+  Friends : ../data/splits/split_0/psl/friends_obs.txt
+  LocalLR : ../data/splits/split_0/psl/lr_local_obs.txt
+  NameJW : ../data/splits/split_0/psl/name_jw_obs.txt
+  NameL : ../data/splits/split_0/psl/name_l_obs.txt
+  Opponents : ../data/splits/split_0/psl/opponents_obs.txt
+  SameCountry : ../data/splits/split_0/psl/country_obs.txt
+  SameLocation : ../data/splits/split_0/psl/location_obs.txt
+  SameTitle : ../data/splits/split_0/psl/title_obs.txt
+  SameWebsite : ../data/splits/split_0/psl/website_obs.txt
+  SimilarEcoDraws : ../data/splits/split_0/psl/eco_d_obs.txt
+  SimilarEcoGames : ../data/splits/split_0/psl/eco_t_obs.txt
+  SimilarEcoLosses : ../data/splits/split_0/psl/eco_l_obs.txt
+  SimilarEcoWins : ../data/splits/split_0/psl/eco_w_obs.txt
+  SimilarRatingBullet : ../data/splits/split_0/psl/ratings_b_obs.txt
+  SimilarRatingLightning : ../data/splits/split_0/psl/ratings_l_obs.txt
+  SimilarRatingRapid : ../data/splits/split_0/psl/ratings_r_obs.txt
+  SimilarRatingTactics : ../data/splits/split_0/psl/ratings_t_obs.txt
+  UsernameJW : ../data/splits/split_0/psl/username_jw_obs.txt
+  UsernameL : ../data/splits/split_0/psl/username_l_obs.txt
+
+  SameUser: ../data/splits/split_0/psl/same_user_obs.txt
 
 targets:
-  SameUser : ../../data/splits/split_0/psl/same_user_target.txt
-  SimilarProfile: ../../data/splits/split_0/psl/profile_sim.txt
+  SameUser : ../data/splits/split_0/psl/same_user_target.txt
 
 truth:
-  SameUser : ../../data/splits/split_0/psl/same_user_truth.txt
+  SameUser : ../data/splits/split_0/psl/same_user_truth.txt
