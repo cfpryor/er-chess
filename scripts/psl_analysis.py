@@ -35,7 +35,7 @@ def run_analysis(infered_sorted_data, truth_sorted_data):
     plt.savefig('test_psl.png')
     
     threshold = 0.3
-    thresholds = list(numpy.linspace(0,1,31))
+    thresholds = list(numpy.linspace(0,1,101))
     for thresh in thresholds:
         false_positive = 0
         false_negative = 0
@@ -58,8 +58,11 @@ def run_analysis(infered_sorted_data, truth_sorted_data):
         else:
             precision = true_positive / (true_positive + false_positive)
             recall = true_positive / (true_positive + false_negative)
-            f1_mine = 2 * (precision * recall) / (precision + recall)
-        print(f1_mine, thresh)
+            if (precision + recall) == 0:
+                f1_mine = 0.0
+            else:
+                f1_mine = 2 * (precision * recall) / (precision + recall)
+        print(f1_mine, precision, recall, thresh)
     false_positive = 0
     false_negative = 0
     true_positive = 0

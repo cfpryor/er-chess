@@ -5,7 +5,8 @@ import numpy
 import pandas
 import random
 
-HEADERS = ['Users', 'Username', 'Full_Name', 'Country', 'Followers', 'Bullet_Current', 'Blitz_Current', 'Rapid_Current', 'Tactics_Current', 'FIDE', 'USCF', 'Truth']
+#HEADERS = ['users' ,'username_jw', 'username_l', 'name_jw', 'name_l', 'location', 'country', 'opponents', 'friends', 'same_website', 'ratings_b', 'ratings_l', 'ratings_r', 'rating_t', 'is_streamer', 'title', 'eco_w', 'eco_l', 'eco_d', 'eco_t', 'active', 'truth']
+HEADERS = ['users' ,'username_jw', 'username_l', 'name_jw', 'name_l', 'location', 'country', 'opponents', 'friends', 'same_website', 'ratings_b', 'ratings_l', 'ratings_r', 'rating_t', 'is_streamer', 'title', 'eco_w', 'eco_l', 'eco_d', 'eco_t', 'truth']
 
 SEED = 4
 SPLIT_NUMBER = 10

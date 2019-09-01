@@ -11,17 +11,25 @@ import matplotlib.pyplot as plt
 from sklearn.utils.fixes import signature
 from sklearn.metrics import f1_score
 
-HEADERS = ['Users', 'Username', 'Full_Name', 'Country', 'Followers', 'Bullet_Current', 'Blitz_Current', 'Rapid_Current', 'Tactics_Current', 'FIDE', 'USCF', 'Truth']
+#HEADERS = ['users' ,'username_jw', 'username_l', 'name_jw', 'name_l', 'location', 'country', 'opponents', 'friends', 'same_website', 'ratings_b', 'ratings_l', 'ratings_r', 'rating_t', 'is_streamer', 'title', 'eco_w', 'eco_l', 'eco_d', 'eco_t', 'active', 'truth']
+HEADERS = ['users' ,'username_jw', 'username_l', 'name_jw', 'name_l', 'location', 'country', 'opponents', 'friends', 'same_website', 'ratings_b', 'ratings_l', 'ratings_r', 'rating_t', 'is_streamer', 'title', 'eco_w', 'eco_l', 'eco_d', 'eco_t','truth']
 
 TRAIN = 'train.json'
 TEST = 'test.json'
 RESULTS = 'lr_results.json'
 
-def run_logistic_regression(train_data, train_labels, test_data, test_labels, data_path):
+def run_logistic_regression(train_data, train_labels, test_data, test_labels, data_path, test_names):
+    print(len(test_data))
     logisticRegr = LogisticRegression()
     logisticRegr.fit(train_data, train_labels)
     prediction_probs = logisticRegr.predict_proba(test_data)
     precision, recall, thresholds = precision_recall_curve(test_labels, prediction_probs.transpose()[1].transpose())
+    print(len(prediction_probs))
+
+    #output_list = []
+    #for i in range(0, len(prediction_probs)):
+    #    output_list.append(float(prediction_probs[i][1]))
+    #print(output_list)
 
     with open(os.path.join(data_path, RESULTS), 'w') as file:
         json.dump(list(prediction_probs.transpose()[1]), file, indent = 4)
@@ -50,6 +58,8 @@ def run_logistic_regression(train_data, train_labels, test_data, test_labels, da
     true_positive = 0
     true_negative = 0
     for i in range(len(predictions)):
+        if predictions[i] == 1:
+            print(test_names[i], predictions[i], prediction_probs[i],test_labels[i])
         if predictions[i] < threshold:
             if test_labels[i] == 0:
                 true_negative += 1
@@ -64,7 +74,7 @@ def run_logistic_regression(train_data, train_labels, test_data, test_labels, da
     precision = true_positive / (true_positive + false_positive)
     recall = true_positive / (true_positive + false_negative)
     f1_mine = 2 * (precision * recall) / (precision + recall)
-    print(f1_mine)
+    print(f1_mine, precision, recall)
 
     #f1 = f1_score(test_labels, predictions)
     #print(f1, f1_mine)
@@ -92,17 +102,18 @@ def main():
     
     train_data = load_data(os.path.join(data_path, TRAIN))
     train_dataframe_users = load_dataframe(train_data)
-    train_dataframe = train_dataframe_users.loc[:, train_dataframe_users.columns != 'Users']
-    train_examples = train_dataframe.loc[:, train_dataframe.columns != 'Truth']
-    train_truth = train_dataframe['Truth']
+    train_dataframe = train_dataframe_users.loc[:, train_dataframe_users.columns != 'users']
+    train_examples = train_dataframe.loc[:, train_dataframe.columns != 'truth']
+    train_truth = train_dataframe['truth']
 
     test_data = load_data(os.path.join(data_path, TEST))
-    test_dataframe_users = load_dataframe(train_data)
-    test_dataframe = test_dataframe_users.loc[:, test_dataframe_users.columns != 'Users']
-    test_examples = test_dataframe.loc[:, test_dataframe.columns != 'Truth']
-    test_truth = test_dataframe['Truth']
-    
-    run_logistic_regression(train_examples, train_truth, test_examples, test_truth, data_path)
+    test_dataframe_users = load_dataframe(test_data)
+    test_dataframe = test_dataframe_users.loc[:, test_dataframe_users.columns != 'users']
+    test_examples = test_dataframe.loc[:, test_dataframe.columns != 'truth']
+    test_truth = test_dataframe['truth']
+    test_names = test_dataframe_users['users']
+
+    run_logistic_regression(train_examples, train_truth, test_examples, test_truth, data_path, test_names)
 
 if (__name__ == '__main__'):
     main()
