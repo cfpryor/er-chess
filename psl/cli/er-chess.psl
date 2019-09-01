@@ -1,12 +1,12 @@
 // Name Similarity Rules
-10.0: UsernameJW(P1, P2) -> SameUser(P1, P2) ^2
-10.0: !UsernameJW(P1, P2) -> !SameUser(P1, P2) ^2
-10.0: UsernameL(P1, P2) -> SameUser(P1, P2) ^2
-10.0: !UsernameL(P1, P2) -> !SameUser(P1, P2) ^2
-10.0: NameJW(P1, P2) -> SameUser(P1, P2) ^2
-10.0: !NameJW(P1, P2) -> !SameUser(P1, P2) ^2
-10.0: NameL(P1, P2) -> SameUser(P1, P2) ^2
-10.0: !NameL(P1, P2) -> !SameUser(P1, P2) ^2
+20.0: UsernameJW(P1, P2) -> SameUser(P1, P2) ^2
+20.0: !UsernameJW(P1, P2) -> !SameUser(P1, P2) ^2
+20.0: UsernameL(P1, P2) -> SameUser(P1, P2) ^2
+20.0: !UsernameL(P1, P2) -> !SameUser(P1, P2) ^2
+20.0: NameJW(P1, P2) -> SameUser(P1, P2) ^2
+20.0: !NameJW(P1, P2) -> !SameUser(P1, P2) ^2
+20.0: NameL(P1, P2) -> SameUser(P1, P2) ^2
+20.0: !NameL(P1, P2) -> !SameUser(P1, P2) ^2
 
 // Profile Rules
 5.0: SameLocation(P1, P2) -> SameUser(P1, P2) ^2
@@ -14,7 +14,8 @@
 5.0: !SameCountry(P1, P2) -> !SameUser(P1, P2) ^2
 
 // Social Rules
-20.0: Opponents(P1, P2) -> !SameUser(P1, P2) ^2
+5.0: Opponents(P1, P2) -> !SameUser(P1, P2) ^2
+5.0: Friends(P1, P2) -> !SameUser(P1, P2) ^2
 
 //5.0: Friends(P1, P3) & Friends(P2, P4) & SameUser(P1, P2) & UsernameJW(P3, P4) -> SameUser(P3, P4) ^2
 //5.0: SameUser(P1, P2) & SameUser(P2, P3) -> SameUser(P1, P3) ^2
@@ -23,27 +24,27 @@
 5.0: BothStreamers(P1, P2) -> SameUser(P1, P2) ^2
 5.0: SameTitle(P1, P2) -> SameUser(P1, P2) ^2
 
-//5.0: SimilarRatingBullet(P1, P2) -> SameUser(P1, P2) ^2
-//5.0: !SimilarRatingBullet(P1, P2) -> !SameUser(P1, P2) ^2
-//5.0: SimilarRatingLightning(P1, P2) -> SameUser(P1, P2) ^2
-//5.0: !SimilarRatingLightning(P1, P2) -> !SameUser(P1, P2) ^2
-//5.0: SimilarRatingRapid(P1, P2) -> SameUser(P1, P2) ^2
-//5.0: !SimilarRatingRapid(P1, P2) -> !SameUser(P1, P2) ^2
-//5.0: SimilarRatingTactics(P1, P2) -> SameUser(P1, P2) ^2
-//5.0: !SimilarRatingTactics(P1, P2) -> !SameUser(P1, P2) ^2
+5.0: SimilarRatingBullet(P1, P2) -> SameUser(P1, P2) ^2
+5.0: !SimilarRatingBullet(P1, P2) -> !SameUser(P1, P2) ^2
+5.0: SimilarRatingLightning(P1, P2) -> SameUser(P1, P2) ^2
+5.0: !SimilarRatingLightning(P1, P2) -> !SameUser(P1, P2) ^2
+5.0: SimilarRatingRapid(P1, P2) -> SameUser(P1, P2) ^2
+5.0: !SimilarRatingRapid(P1, P2) -> !SameUser(P1, P2) ^2
+5.0: SimilarRatingTactics(P1, P2) -> SameUser(P1, P2) ^2
+5.0: !SimilarRatingTactics(P1, P2) -> !SameUser(P1, P2) ^2
 
-//5.0: SimilarEcoDraws(P1, P2) -> SameUser(P1, P2) ^2
-//5.0: !SimilarEcoDraws(P1, P2) -> !SameUser(P1, P2) ^2
-//5.0: SimilarEcoGames(P1, P2) -> SameUser(P1, P2) ^2
-//5.0: !SimilarEcoGames(P1, P2) -> !SameUser(P1, P2) ^2
-//5.0: SimilarEcoLosses(P1, P2) -> SameUser(P1, P2) ^2
-//5.0: !SimilarEcoLosses(P1, P2) -> !SameUser(P1, P2) ^2
-//5.0: SimilarEcoWins(P1, P2) -> SameUser(P1, P2) ^2
-//5.0: !SimilarEcoWins(P1, P2) -> !SameUser(P1, P2) ^2
+5.0: SimilarEcoDraws(P1, P2) -> SameUser(P1, P2) ^2
+5.0: !SimilarEcoDraws(P1, P2) -> !SameUser(P1, P2) ^2
+5.0: SimilarEcoGames(P1, P2) -> SameUser(P1, P2) ^2
+5.0: !SimilarEcoGames(P1, P2) -> !SameUser(P1, P2) ^2
+5.0: SimilarEcoLosses(P1, P2) -> SameUser(P1, P2) ^2
+5.0: !SimilarEcoLosses(P1, P2) -> !SameUser(P1, P2) ^2
+5.0: SimilarEcoWins(P1, P2) -> SameUser(P1, P2) ^2
+5.0: !SimilarEcoWins(P1, P2) -> !SameUser(P1, P2) ^2
 
 // Local Classifiers
-//20.0: LocalLR(P1, P2) -> SameUser(P1, P2) ^2
-//20.0: !LocalLR(P1, P2) -> !SameUser(P1, P2) ^2
+15.0: LocalLR(P1, P2) -> SameUser(P1, P2) ^2
+15.0: !LocalLR(P1, P2) -> !SameUser(P1, P2) ^2
 
 // Structural Constraint
 SameUser(P1, P2) = SameUser(P2, P1) .
