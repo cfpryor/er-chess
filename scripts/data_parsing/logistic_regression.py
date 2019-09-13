@@ -7,6 +7,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import precision_recall_curve
 from sklearn import metrics
 from sklearn.metrics import auc
+from sklearn.metrics import roc_curve
 import matplotlib.pyplot as plt
 from sklearn.utils.fixes import signature
 from sklearn.metrics import f1_score
@@ -19,23 +20,17 @@ TEST = 'test.json'
 RESULTS = 'lr_results.json'
 
 def run_logistic_regression(train_data, train_labels, test_data, test_labels, data_path, test_names):
-    print(len(test_data))
     logisticRegr = LogisticRegression()
     logisticRegr.fit(train_data, train_labels)
     prediction_probs = logisticRegr.predict_proba(test_data)
     precision, recall, thresholds = precision_recall_curve(test_labels, prediction_probs.transpose()[1].transpose())
-    print(len(prediction_probs))
-
-    #output_list = []
-    #for i in range(0, len(prediction_probs)):
-    #    output_list.append(float(prediction_probs[i][1]))
-    #print(output_list)
 
     with open(os.path.join(data_path, RESULTS), 'w') as file:
         json.dump(list(prediction_probs.transpose()[1]), file, indent = 4)
-
-    auc_val = auc(recall, precision)
-    print(auc_val)
+    
+    fpr, tpr, _ = roc_curve(test_labels, prediction_probs.transpose()[1].transpose())
+    auc_roc = auc(fpr, tpr)
+    auc_pr = auc(recall, precision)
 
     step_kwargs = ({'step': 'post'} if 'step' in signature(plt.fill_between).parameters else {})
     plt.step(recall, precision, color='b', alpha=0.2,where='post')
@@ -58,8 +53,6 @@ def run_logistic_regression(train_data, train_labels, test_data, test_labels, da
     true_positive = 0
     true_negative = 0
     for i in range(len(predictions)):
-        if predictions[i] == 1:
-            print(test_names[i], predictions[i], prediction_probs[i],test_labels[i])
         if predictions[i] < threshold:
             if test_labels[i] == 0:
                 true_negative += 1
@@ -74,13 +67,9 @@ def run_logistic_regression(train_data, train_labels, test_data, test_labels, da
     precision = true_positive / (true_positive + false_positive)
     recall = true_positive / (true_positive + false_negative)
     f1_mine = 2 * (precision * recall) / (precision + recall)
-    print(f1_mine, precision, recall)
-
-    #f1 = f1_score(test_labels, predictions)
-    #print(f1, f1_mine)
+    print('\t'.join([str(f1_mine), str(precision), str(recall), str(auc_pr), str(auc_roc)]))
 
 def load_dataframe(data, headers = HEADERS):
-    print("Starting Loading Dataframe")
     dataframe = pandas.DataFrame(data)
     dataframe.columns = headers
     return dataframe

@@ -154,7 +154,7 @@ def create_features(data, ground_truth, ground_truth_value):
 
     for user_i, user_j in sorted(list(ground_truth)):
         row = []
-        if user_i not in data or user_j not in data:
+        if user_i not in data or user_j not in data or user_i == user_j:
             continue
         if 'username' not in data[user_i]:
             print(data[user_i])

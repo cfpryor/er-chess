@@ -24,6 +24,7 @@ ECO_W_FILENAME = 'eco_w_obs.txt'
 ECO_L_FILENAME = 'eco_l_obs.txt'
 ECO_D_FILENAME = 'eco_d_obs.txt'
 ECO_T_FILENAME = 'eco_t_obs.txt'
+USER_MAPPING_FILENAME = 'user_mapping.txt'
 
 
 LR_LOCAL_FILENAME = 'lr_local_obs.txt'
@@ -59,21 +60,33 @@ def load_data(train_data, test_data, lr_data, out_path):
     eco_l = []
     eco_d = []
     eco_t = []
+    user_mapping = []
+    user_mapping_dict = {}
 
     lr_local = []
     same_user_obs = []
     same_user_target = []
     same_user_truth = []
 
+    user_set = set()
+    for row_i in test_data:
+        user_set.add(row_i[0][0][0] + "_" + row_i[0][0][1])
+        user_set.add(row_i[0][1][0] + "_" + row_i[0][1][1])
+    
+    for row_i in train_data:
+        user_set.add(row_i[0][0][0] + "_" + row_i[0][0][1])
+        user_set.add(row_i[0][1][0] + "_" + row_i[0][1][1])
+    
+    int_identifier = 0
+    for user in user_set:
+        user_mapping.append([user, int_identifier])
+        user_mapping_dict[user] = int_identifier
+        int_identifier += 1
+
     for i in range(len(test_data)):
         test_example = test_data[i][0]
-        print(test_example)
-        name_i = test_example[0][0] + "_" + test_example[0][1]
-        name_j = test_example[1][0] + "_" + test_example[1][1]
-
-        if(name_i == name_j):
-            print('TEST FILE DUPE: %s' % (name_i))
-            continue
+        name_i = user_mapping_dict[test_example[0][0] + "_" + test_example[0][1]]
+        name_j = user_mapping_dict[test_example[1][0] + "_" + test_example[1][1]]
 
         username_jw.append([name_i, name_j, test_data[i][1]])
         username_jw.append([name_j, name_i, test_data[i][1]])
@@ -143,13 +156,9 @@ def load_data(train_data, test_data, lr_data, out_path):
 
     for i in range(len(train_data)):
         train_example = train_data[i][0]
-        name_i = train_example[0][0] + "_" + train_example[0][1]
-        name_j = train_example[1][0] + "_" + train_example[1][1]
+        name_i = user_mapping_dict[train_example[0][0] + "_" + train_example[0][1]]
+        name_j = user_mapping_dict[train_example[1][0] + "_" + train_example[1][1]]
         
-        if(name_i == name_j):
-            print('TRAIN FILE DUPE: %s' % (name_i))
-            continue
-
         username_jw.append([name_i, name_j, train_data[i][1]])
         username_jw.append([name_j, name_i, train_data[i][1]])
 
@@ -283,6 +292,10 @@ def load_data(train_data, test_data, lr_data, out_path):
     with open(os.path.join(out_path, SAMEUSER_TRUTH_FILENAME), 'w') as file:
         for same_user in same_user_truth:
             file.write("\t".join([str(s) for s in same_user]) + "\n")
+
+    with open(os.path.join(out_path, USER_MAPPING_FILENAME), 'w') as file:
+        for user in user_mapping:
+            file.write("\t".join([str(s) for s in user]) + "\n")
 
 def load_users(user_path):
     with open(user_path, 'r') as file:
