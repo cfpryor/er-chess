@@ -2,7 +2,7 @@ import json
 import os
 import sys
 
-DEFAULT_NUMBER_SPLITS = 4
+DEFAULT_NUMBER_SPLITS = 7
 FILENAME_PREFIX = '__users_'
 FILENAME_SUFFIX = '.json'
 

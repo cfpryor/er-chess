@@ -9,8 +9,12 @@ import urllib.request
 
 from urllib.request import HTTPError, URLError
 
+# Request Constants
+RATE_LIMITING_CODE = 429
+RATE_LIMIT_SLEEP = 61
+
 # Constants
-SLEEP_TIME_MS = 500
+SLEEP_TIME_MS = 300
 DEFAULT_TIMEOUT = 60
 MAX_EXPIRE_ATTEMPTS = 10
 MAX_ATTEMPTS = 3
@@ -22,7 +26,11 @@ TAR_SUFFIX = '.tar'
 # URL Variables
 URL_BASE = 'https://lichess.org/@/'
 
+API_BASE = 'https://lichess.org/api/'
+USER_API_BASE = os.path.join(API_BASE, 'user')
+
 # Outupt Filenames
+OUTPUT_API_PROFILE = 'api_profile.json.gz'
 OUTPUT_OPPONENTS = 'opponents.json.gz'
 OUTPUT_PROFILE = 'profile.html.gz'
 OUTPUT_STATS = 'stats.json'
@@ -70,19 +78,13 @@ def fetch_url(url, default_timeout = DEFAULT_TIMEOUT):
         response = urllib.request.urlopen(request, timeout=default_timeout).read().decode('utf-8')
         last_fetch = int(time.time() * 1000)
     except (HTTPError, URLError) as error:
-        log('Data not retrieved because %s\nURL: %s' % (error, url), level = 'ERROR')
-        last_fetch = int(time.time() * 1000)
-        return None
-    except timeout:
-        log('Socket timed out - URL %s' % (url), level = 'ERROR')
-        last_fetch = int(time.time() * 1000)
-        return None
-    except http.client.IncompleteRead as icread:
-        log('Incomplete Read %s - URL %s' % (icread, url), level = 'ERROR')
+        if int(error.getcode()) == RATE_LIMITING_CODE:
+            time.sleep(RATE_LIMIT_SLEEP)
+        log('Error: %s -- URL: %s' % (error, url), level = 'ERROR')
         last_fetch = int(time.time() * 1000)
         return None
     except Exception as error:
-        log('Other error - %s' % (error), level = 'ERROR')
+        log('Error: %s -- URL: %s' % (error, url), level = 'ERROR')
         last_fetch = int(time.time() * 1000)
         return None
 
@@ -100,6 +102,12 @@ def gzip_json(data, output_path):
 
 # Fetch all relavent information on a user
 def fetch_data(username, output_path):
+    api_profile_response = fetch_url(os.path.join(USER_API_BASE, username))
+    if api_profile_response != None:
+        gzip_json(api_profile_response, os.path.join(output_path, OUTPUT_API_PROFILE))
+
+    return
+
     friends = {}
     stats = {}
 
@@ -187,16 +195,30 @@ def fetch_data(username, output_path):
                 tar.add(os.path.join(output_path, filename), arcname = filename)
                 os.remove(os.path.join(output_path, filename))
 
-def main():
-    user = 'augusto_kas'
-    #user = 'penguingm1'
-    if not os.path.isdir('testing'):
-        os.mkdir('testing')
-    if not os.path.isdir(os.path.join('testing', user)):
-        os.mkdir(os.path.join('testing', user))
+def load_users(data_path):
+    with open(data_path, 'r') as data_file:
+        return json.load(data_file)
 
-    fetch_data(user, os.path.join('testing', user))
-    return
+def _load_args(args):
+    executable = args.pop(0)
+    if (len(args) != 2 or ({'h', 'help'} & {arg.lower().strip().replace('-', '') for arg in args})):
+        print("USAGE: python3 %s <data path> <output path>" % (executable), file = sys.stderr)
+        sys.exit(1)
+
+    data_path = args.pop(0)
+    output_path = args.pop(0)
+
+    return (data_path, output_path)
+
+def main():
+    data_path, output_path = _load_args(sys.argv)
+    users = load_users(data_path)
+
+    for user in users:
+        if not os.path.isdir(os.path.join(output_path, user)):
+            os.mkdir(os.path.join(output_path, user))
+
+        fetch_data(user, os.path.join(output_path, user))
 
 if (__name__ == '__main__'):
     main()
