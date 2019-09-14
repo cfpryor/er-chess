@@ -302,9 +302,10 @@ def main():
     users = load_users(data_path)
 
     for user in users:
-        if not os.path.isdir(os.path.join(output_path, user)):
-            os.mkdir(os.path.join(output_path, user))
+        if os.path.isdir(os.path.join(output_path, user)):
+            continue    
 
+        os.mkdir(os.path.join(output_path, user))
         fetch_data(user, os.path.join(output_path, user))
 
 if (__name__ == '__main__'):
