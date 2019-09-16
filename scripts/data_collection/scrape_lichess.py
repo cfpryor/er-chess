@@ -77,7 +77,7 @@ def fetch_url(url, default_timeout = DEFAULT_TIMEOUT):
         request = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         response = urllib.request.urlopen(request, timeout=default_timeout).read().decode('utf-8')
         last_fetch = int(time.time() * 1000)
-    except (HTTPError, URLError) as error:
+    except HTTPError as error:
         if int(error.getcode()) == RATE_LIMITING_CODE:
             time.sleep(RATE_LIMIT_SLEEP)
         log('Error: %s -- URL: %s' % (error, url), level = 'ERROR')
